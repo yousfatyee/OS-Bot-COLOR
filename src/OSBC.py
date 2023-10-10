@@ -114,7 +114,7 @@ class App(customtkinter.CTk):
         # Dropdown menu for selecting a game
         self.menu_game_selector = customtkinter.CTkOptionMenu(
             master=self.frame_left,
-            font=body_large_font(),
+            font=body_large_font(), 
             dropdown_font=body_med_font(),
             values=list(self.btn_map.keys()),
             command=self.__on_game_selector_change,

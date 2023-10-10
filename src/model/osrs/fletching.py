@@ -7,7 +7,6 @@ import pyautogui as pag
 import keyboard
 from model.osrs.osrs_bot import OSRSBot
 from model.runelite_bot import BotStatus
-from model.runelite_bot import RuneLiteBot
 from utilities.api.morg_http_client import MorgHTTPSocket
 from utilities.api.status_socket import StatusSocket
 from utilities.geometry import RuneLiteObject
@@ -15,18 +14,16 @@ import random
 from utilities.imagesearch import search_img_in_rect, BOT_IMAGES
 
 
-class OSRSWoodcutter(OSRSBot):
+class OSRSBankFletcher(OSRSBot):
     def __init__(self):
-        bot_title = "Woodcutter"
+        bot_title = "BankFletcher"
         description = (
-            "This bot power-chops wood. Position your character near some trees, tag them, and press Play.\nTHIS SCRIPT IS AN EXAMPLE, DO NOT USE LONGTERM."
+            ""
         )
         super().__init__(bot_title=bot_title, description=description)
         self.running_time = 1
         self.take_breaks = False
 
-    
-    
     def create_options(self):
         self.options_builder.add_slider_option("running_time", "How long to run (minutes)?", 1, 500)
         self.options_builder.add_checkbox_option("take_breaks", "Take breaks?", [" "])
@@ -46,7 +43,6 @@ class OSRSWoodcutter(OSRSBot):
         self.log_msg(f"Bot will{' ' if self.take_breaks else ' not '}take breaks.")
         self.log_msg("Options set successfully.")
         self.options_set = True
-        self.loot = ["Bird nest","Bird nest (seeds)","Bird nest (ring)","Bird nest (egg)","Clue nest (medium)","Clue nest (hard)","Clue nest (elite)","Clue nest (easy)"]
 
     def main_loop(self):
         # Setup API
@@ -64,47 +60,18 @@ class OSRSWoodcutter(OSRSBot):
         start_time = time.time()
         end_time = self.running_time * 60
         while time.time() - start_time < end_time:
+            
+            #open bank take logs
+            self.__take_logs(api_m)
+            
+            #fletching
+            
+            self.__fletch_log(api_m)
+            
+            
             # 5% chance to take a break between tree searches
             if rd.random_chance(probability=0.05) and self.take_breaks:
                 self.take_break(max_seconds=30, fancy=True)
-
-            # 2% chance to drop logs early
-            #if rd.random_chance(probability=0.02):
-                #self.__burn_logs(api_m)
-
-            # If inventory is full, drop logs
-            if api_m.get_is_inv_full():
-                self.__bank_log(api_m)
-
-            # If our mouse isn't hovering over a tree, and we can't find another tree...
-            if not self.__move_mouse_to_nearest_tree():
-                if not self.mouseover_text(contains="Chop", color=clr.OFF_WHITE) :
-                    failed_searches += 1
-                    if failed_searches % 10 == 0:
-                        self.log_msg("Searching for trees...")
-                    if failed_searches > 70:
-                        # If we've been searching for a whole minute...
-                        self.__logout("No tagged trees found. Logging out.")
-                    time.sleep(1)
-                    continue
-            failed_searches = 0  # If code got here, a tree was found
-
-            # Click if the mouseover text assures us we're clicking a tree
-            if not self.mouseover_text(contains="Chop", color=clr.OFF_WHITE):
-                continue
-            
-            self.mouse.click()
-            time.sleep(3.5)
-
-            # While the player is chopping (or moving), wait
-            probability = 0.10
-            while not api_m.get_is_player_idle():
-                # Every second there is a chance to move the mouse to the next tree, lessen the chance as time goes on
-                if rd.random_chance(probability):
-                    self.__move_mouse_to_nearest_tree(next_nearest=True)
-                    probability /= 5
-                RuneLiteBot.pick_up_loot(self,self.loot)
-                time.sleep(1)
 
             self.update_progress((time.time() - start_time) / end_time)
 
@@ -141,37 +108,89 @@ class OSRSWoodcutter(OSRSBot):
         else:
             self.mouse.move_to(tree.random_point())
         return True
-    
+    def __take_logs(self,api_m: MorgHTTPSocket):
+        retry = random.randint(0,5)
+        done = False
+        while(not done):
+            bank_depost = self.get_all_tagged_in_rect(self.win.game_view, clr.BLACK)[0]
+            if not bank_depost:
+                self.__logout("cant locate bank desposit")
+            self.mouse.move_to(bank_depost.random_point(), mouseSpeed="slow", knotsCount=2)
+            self.mouse.click()
+            #while not (val := search_img_in_rect(BOT_IMAGES.joinpath("bank","bankdeposit.png"),self.win.game_view)):
+            #    time.sleep(0.1)
+            #    retry += 1
+            #    if retry >= 10:
+            #        retry = random.randint(0,5)
+            #        continue
+            #if not val:
+            #    continue
+            #
+            time.sleep(0.9)
+            
+            while not (bank_all := self.get_all_tagged_in_rect(self.win.game_view,clr.GREEN)) and not api_m.get_is_player_idle():
+                time.sleep(0.1)
+                retry += 1
+                if retry >= 10:
+                    retry = random.randint(0,5)
+                    continue
+                if not val:
+                    continue
+            self.log_msg("Deposting...")
+            self.mouse.move_to(bank_all[0].random_point())
+            self.mouse.click()
+            time.sleep(random.randint(600,940)/1000)
+            slots = api_m.get_inv_item_indices(ids.logs)
+            if len(slots) == 0 :
+                done = True
+                break
+        
+        retry = random.randint(0,5)
+        done = False
+        while(not done):
+            takeMarked = self.get_all_tagged_in_rect(self.win.game_view, clr.CYAN)[0]
+            if not takeMarked:
+                self.log_msg("cant take from bank...")
+            self.mouse.move_to(takeMarked.random_point(), mouseSpeed="medium", knotsCount=2)
+            self.mouse.click()
+            time.sleep(random.randint(600,940)/1000)
+            slots = api_m.get_inv_item_indices(ids.logs)
+            if len(slots) != 0 :
+                done = True
+                break
+        self.log_msg("closing bank")
+        keyboard.press_and_release("escape")
+        return None
+            
     def __bank_log(self,api_m: MorgHTTPSocket):
         retry = random.randint(0,5)
         done = False
         while(not done):
             keyboard.press_and_release("escape")
-            time.sleep(random.randint(600,940)/1000)
-            bank_depost = self.get_all_tagged_in_rect(self.win.game_view, clr.BLUE)[0]
+            bank_depost = self.get_all_tagged_in_rect(self.win.game_view, clr.BLACK)[0]
             if not bank_depost:
                 self.__logout("cant locate bank desposit")
             self.mouse.move_to(bank_depost.random_point(), mouseSpeed="slow", knotsCount=2)
             self.mouse.click()
-            while not (val := search_img_in_rect(BOT_IMAGES.joinpath("bank","bankdeposit.png"),self.win.game_view)):
-                time.sleep(0.1)
-                retry += 1
-                if retry >= 10:
-                    retry = random.randint(0,5)
-                    continue
-            if not val:
-                continue
+            #while not (val := search_img_in_rect(BOT_IMAGES.joinpath("bank","bankdeposit.png"),self.win.game_view)):
+            #    time.sleep(0.1)
+            #    retry += 1
+            #    if retry >= 10:
+            #        retry = random.randint(0,5)
+            #        continue
+            #if not val:
+            #    continue
             
-            while not (bank_all := search_img_in_rect(BOT_IMAGES.joinpath("bank","bankall.png"),self.win.game_view)) and not api_m.get_is_player_idle():
+            while not (bank_all := self.get_all_tagged_in_rect(self.win.game_view,clr.GREEN)) and not api_m.get_is_player_idle():
                 time.sleep(0.1)
                 retry += 1
                 if retry >= 10:
                     retry = random.randint(0,5)
                     continue
-            if not bank_all:
-                continue
+                if not val:
+                    continue
             self.log_msg("Deposting...")
-            self.mouse.move_to(bank_all.random_point())
+            self.mouse.move_to(bank_all[0].random_point())
             self.mouse.click()
             time.sleep(random.randint(600,940)/1000)
             slots = api_m.get_inv_item_indices(ids.logs)
@@ -184,23 +203,23 @@ class OSRSWoodcutter(OSRSBot):
     
     def __fletch_log(self, api_m: MorgHTTPSocket):
                         
-        knife = api_m.get_inv_item_indices(ids.KNIFE)
+        KNIFE = api_m.get_inv_item_indices(ids.KNIFE)
         slots = api_m.get_inv_item_indices(ids.logs)
         if len(slots) == 0 :
-            self.log_msg("NO LOGS TO FLETCH...")
+            self.log_msg("NO logs TO FLETCH...")
             return None
         
         
         while (1):
             retry = 0 
-            self.mouse.move_to(self.win.inventory_slots[knife[0]].random_point())
+            self.mouse.move_to(self.win.inventory_slots[KNIFE[0]].random_point())
             if not self.mouseover_text(contains="Use", color=clr.OFF_WHITE):
                 self.log_msg("cant find 'USE' text...")
                 continue
             self.mouse.click()
 
             #get first 4
-            slots = slots[:4]
+            slots = slots[:2]
             rand_log =random.choice(range(len(slots)))
             slot = self.win.inventory_slots[slots[rand_log]]
             self.mouse.move_to(slot.random_point())
@@ -220,14 +239,22 @@ class OSRSWoodcutter(OSRSBot):
                 continue
             
             pag.press("space")
+            times = 0
             
-            while not api_m.get_is_player_idle():
-                time.sleep(0.05)
+            while times < 10:
+                slots = api_m.get_inv_item_indices(ids.logs)
+                if len(slots) == 0 :
+                    break
+                if api_m.get_is_player_idle():
+                    times += 1
+                else:
+                    time.sleep(1)
             
             slots = api_m.get_inv_item_indices(ids.logs)
             if len(slots) == 0 :
-                self.log_msg("NO LOGS TO FLETCH...")   
+                self.log_msg("NO logs TO FLETCH...")   
                 break
+            
         
         return None             
 
@@ -300,7 +327,7 @@ class OSRSWoodcutter(OSRSBot):
         slots = api_m.get_inv_item_indices(ids.logs)
         self.drop(slots)
         self.logs += len(slots)
-        self.log_msg(f"Logs cut: ~{self.logs}")
+        self.log_msg(f"logs cut: ~{self.logs}")
         time.sleep(1)
    
         

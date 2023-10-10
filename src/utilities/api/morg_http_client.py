@@ -474,7 +474,7 @@ if __name__ == "__main__":
             print(f"Get position of first logs in inventory: {api.get_first_occurrence(ids.LOGS)}")
 
         # Wait for XP to change
-        if False:
+        if True:
             print(f"WC Level: {api.get_skill_level('Woodcutting')}")
             print(f"WC XP: {api.get_skill_xp('Woodcutting')}")
             print(f"WC XP Gained: {api.get_skill_xp_gained('Woodcutting')}")

@@ -43,9 +43,10 @@ class StatusSocket:
         t_server = Thread(target=self.__RSERVER)
         t_server.daemon = True
         t_server.start()
+        self.get_player_data()
         print("thread alive:", t_server.is_alive())
 
-    def __RSERVER(self, port=5000):
+    def __RSERVER(self, port=5050):
         try:
             httpd = HTTPServer(("127.0.0.1", port), RLSTATUS)
             httpd.serve_forever()
@@ -235,10 +236,10 @@ if __name__ == "__main__":
     while True:
         # api.get_PlayerData()
         time.sleep(api.gameTick)
-        print(f"Real Strength Level: {api.get_real_level('STRENGTH')}")
-        print(f"Boosted Strength Level: {api.get_boosted_level('STRENGTH')}")
-        print(f"Is Strength boosted?: {api.get_is_boosted('STRENGTH')}")
-        print(f"Run Energy: {api.get_run_energy()}")
+        #print(f"Real Strength Level: {api.get_real_level('STRENGTH')}")
+        #print(f"Boosted Strength Level: {api.get_boosted_level('STRENGTH')}")
+        #print(f"Is Strength boosted?: {api.get_is_boosted('STRENGTH')}")
+        #print(f"Run Energy: {api.get_run_energy()}")
         print(f"Is Inventory Full: {api.get_is_inv_full()}")
         print(f"Inventory: {api.get_inv()}")
         print(f"Indexes of bones and chickens in inventory: {api.get_inv_item_indices([526, 2138])}")

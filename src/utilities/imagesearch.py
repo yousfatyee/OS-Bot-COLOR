@@ -26,6 +26,7 @@ def __imagesearcharea(template: Union[cv2.Mat, str, Path], im: cv2.Mat, confiden
         template = cv2.cvtColor(template, cv2.COLOR_BGR2BGRA)
     # Get template dimensions
     hh, ww = template.shape[:2]
+    hh1,ww1 = im.shape[:2]
     # Extract base image and alpha channel
     base = template[:, :, 0:3]
     alpha = template[:, :, 3]
