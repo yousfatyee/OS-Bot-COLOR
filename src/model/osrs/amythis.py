@@ -15,9 +15,9 @@ import random
 from utilities.imagesearch import search_img_in_rect, BOT_IMAGES
 
 
-class OSRSMiner(OSRSBot):
+class OSRSAmethesMiner(OSRSBot):
     def __init__(self):
-        bot_title = "Miner"
+        bot_title = "Amethys Miner"
         description = (
             "This bot power-Mines wood. Position your character near some trees, tag them, and press Play.\nTHIS SCRIPT IS AN EXAMPLE, DO NOT USE LONGTERM."
         )
@@ -73,9 +73,29 @@ class OSRSMiner(OSRSBot):
             #if (not api_m.get_if_item_in_inv(ids.WATERSKIN1)) and (not api_m.get_if_item_in_inv(ids.WATERSKIN2)) and (not api_m.get_if_item_in_inv(ids.WATERSKIN3)) and (not api_m.get_if_item_in_inv(ids.WATERSKIN4)):
                # self.__logout("No more water skins logging out")
             
-            if api_m.get_if_item_in_inv(ids.WATERSKIN0):
-                self.__drop_water_skins(api_m)
-                
+            if not api_m.get_is_inv_full():
+                self.select_color2(clr.PINK,'Mine',api_m)
+            
+            elif api_m.get_is_inv_full():
+                if not api_m.get_if_item_in_inv(ids.AMETHYST):
+                    self.__logout('No more rocks to mine')
+                else : 
+                    amethyst = api_m.get_inv_item_indices(ids.AMETHYST) [random.randint(0,2)]
+                    chisel= api_m.get_inv_item_indices(ids.CHISEL) [0]                   
+                    self.mouse.move_to(self.win.inventory_slots[chisel].random_point(),mouseSpeed='fast')
+                    while(not self.mouseover_text(contains='Use',color=clr.OFF_WHITE)):
+                        self.mouse.move_to(self.win.inventory_slots[chisel].random_point(),mouseSpeed='fast')
+                    self.mouse.click()
+                    self.mouse.move_to(self.win.inventory_slots[amethyst].random_point(),mouseSpeed='fast')
+                    while(not self.mouseover_text(contains='Use',color=clr.OFF_WHITE)):
+                        self.mouse.move_to(self.win.inventory_slots[amethyst].random_point(),mouseSpeed='fast')
+                    self.mouse.click()
+                    time.sleep(2)
+                    keyboard.press_and_release("4")
+                    time.sleep(2)
+                    
+            while not api_m.get_is_player_idle(3):
+                time.sleep(0.5)
             #if api_m.get_is_inv_full():
             #    slots1 = api_m.get_inv_item_indices(ids.SANDSTONE_1KG)
             #    slots2 = api_m.get_inv_item_indices(ids.SANDSTONE_2KG)
@@ -83,50 +103,9 @@ class OSRSMiner(OSRSBot):
             #    self.drop(slots)
             #    time.sleep(1)
                    
-                
-            # If inventory is full, drop logs
-            if api_m.get_is_inv_full() :     
-                #if api_m.get_run_energy() > 30:
-                #    self.toggle_run(True)
-                flag = False                                                               
-                if  self.__move_to_grinder() and api_m.get_is_player_idle():
-                    if not self.mouseover_text(contains="Deposit", color=clr.OFF_WHITE):
-                        continue
-                    self.mouse.click()
-                    while api_m.get_is_player_idle():
-                        time.sleep(0.6*random.randint(1,2))
-                    flag = True       
-                elif not self.__move_to_further_tile():
-                    self.__logout("cant locate grinder")
-                #self.mouse.click()
-                #time.sleep(1)
-            
-            
-
-            # If our mouse isn't hovering over a tree, and we can't find another tree...
-            if not self.__move_mouse_to_nearest_rock(False,True):
-                if not self.__move_to_further_tile():
-                    self.__logout("cant locate grinder")
-                elif api_m.get_is_player_idle():
-                    self.mouse.click()
-                    time.sleep(1.5)
-                if not self.mouseover_text(contains="Mine", color=clr.OFF_WHITE) :
-                    failed_searches += 1
-                    if failed_searches % 10 == 0:
-                        self.log_msg("Searching for rocks...")
-                    if failed_searches > 70:
-                        # If we've been searching for a whole minute...
-                        self.__logout("No tagged rocks found. Logging out.")
-                    time.sleep(1)
-                    continue
-            failed_searches = 0  # If code got here, a tree was found
 
             # Click if the mouseover text assures us we're clicking a tree
-            if api_m.get_is_player_idle() and self.__move_mouse_to_nearest_rock():
-                if not self.mouseover_text(contains="Mine", color=clr.OFF_WHITE):
-                    continue
-                self.mouse.click()
-            time.sleep(0.6*random.randint(1,2))
+           
 
             self.update_progress((time.time() - start_time) / end_time)
 

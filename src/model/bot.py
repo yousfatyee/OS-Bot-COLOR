@@ -6,7 +6,6 @@ import ctypes
 import platform
 import re
 import threading
-import time
 import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -27,6 +26,16 @@ from utilities.geometry import Point, Rectangle
 from utilities.mouse import Mouse
 from utilities.options_builder import OptionsBuilder
 from utilities.window import Window, WindowInitializationError
+import random
+import time
+import keyboard
+import pyautogui
+
+import utilities.color as clr
+import utilities.random_util as rd
+
+from utilities.api.morg_http_client import MorgHTTPSocket
+from utilities.imagesearch import search_img_in_rect, BOT_IMAGES
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -264,6 +273,81 @@ class Bot(ABC):
             self.mouse.click()
         pag.keyUp("shift")
 
+    def chatbox_text_QUEST(self, contains: str = None) -> Union[bool, str]:
+        """
+        Examines the chatbox for text. Currently only captures player chat text.
+        Args:
+            contains: The text to search for (single word or phrase). Case sensitive. If left blank,
+                      returns all text in the chatbox.
+        Returns:
+            True if exact string is found, False otherwise.
+            If args are left blank, returns the text in the chatbox.
+        """
+        if contains is None:
+            return ocr.extract_text(self.win.chat, ocr.QUILL_8, clr.BLACK)
+        if ocr.find_text(contains, self.win.chat, ocr.QUILL_8, clr.BLACK):
+            return True
+
+    def chatbox_text_BLACK(self, contains: str = None) -> Union[bool, str]:
+        """
+        Examines the chatbox for text. Currently only captures player chat text.
+        Args:
+            contains: The text to search for (single word or phrase). Case sensitive. If left blank,
+                      returns all text in the chatbox.
+        Returns:
+            True if exact string is found, False otherwise.
+            If args are left blank, returns the text in the chatbox.
+        """
+        if contains is None:
+            return ocr.extract_text(self.win.chat, ocr.PLAIN_12, clr.BLACK)
+        if ocr.find_text(contains, self.win.chat, ocr.PLAIN_12, clr.BLACK):
+            return True
+
+    def chatbox_text_BLACK_first_line(self, contains: str = None) -> Union[bool, str]:
+        """
+        Examines the chatbox for text. Currently only captures player chat text.
+        Args:
+            contains: The text to search for (single word or phrase). Case sensitive. If left blank,
+                      returns all text in the chatbox.
+        Returns:
+            True if exact string is found, False otherwise.
+            If args are left blank, returns the text in the chatbox.
+        """
+        if contains is None:
+            return ocr.extract_text(self.win.chat_first_line, ocr.PLAIN_12, clr.BLACK)
+        if ocr.find_text(contains, self.win.chat_first_line, ocr.PLAIN_12, clr.BLACK):
+            return True
+
+    def chatbox_text_RED(self, contains: str = None) -> Union[bool, str]:
+        """
+        Examines the chatbox for text. Currently only captures player chat text.
+        Args:
+            contains: The text to search for (single word or phrase). Case sensitive. If left blank,
+                      returns all text in the chatbox.
+        Returns:
+            True if exact string is found, False otherwise.
+            If args are left blank, returns the text in the chatbox.
+        """
+        if contains is None:
+            return ocr.extract_text(self.win.chat, ocr.PLAIN_12, clr.TEXT_RED)
+        if ocr.find_text(contains, self.win.chat, ocr.PLAIN_12, clr.TEXT_RED):
+            return True
+
+    def chatbox_text_GREEN(self, contains: str = None) -> Union[bool, str]:
+        """
+        Examines the chatbox for text. Currently only captures player chat text.
+        Args:
+            contains: The text to search for (single word or phrase). Case sensitive. If left blank,
+                      returns all text in the chatbox.
+        Returns:
+            True if exact string is found, False otherwise.
+            If args are left blank, returns the text in the chatbox.
+        """
+        if contains is None:
+            return ocr.extract_text(self.win.chat, ocr.PLAIN_12, clr.TEXT_GREEN)
+        if ocr.find_text(contains, self.win.chat, ocr.PLAIN_12, clr.TEXT_GREEN):
+            return True
+
     def drop(self, slots: List[int]) -> None:
         """
         Shift-clicks inventory slots to drop items.
@@ -272,13 +356,14 @@ class Bot(ABC):
         """
         self.log_msg("Dropping items...")
         pag.keyDown("shift")
-        for i, slot in enumerate(self.win.inventory_slots):
-            if i not in slots:
+        drop_order = generate_matrix_path()
+        for spot in drop_order:
+            if spot not in slots:
                 continue
-            p = slot.random_point()
+            p = self.win.inventory_slots[spot].random_point()
             self.mouse.move_to(
                 (p[0], p[1]),
-                mouseSpeed="fast",
+                mouseSpeed="fastest",
                 knotsCount=1,
                 offsetBoundaryY=40,
                 offsetBoundaryX=40,
@@ -596,3 +681,191 @@ class Bot(ABC):
             self.mouse.click()
         else:
             self.log_msg("Run is already off.")
+
+    def withdraw_from_bank(self, item_pic, close=True):
+        for item in item_pic:
+            timer = 0
+            while not (item_in_bank := search_img_in_rect(BOT_IMAGES.joinpath("bank", f'{item}.png'), self.win.game_view)):
+                timer += 1
+                time.sleep(1)
+                if timer == 50:
+                    return False
+            if item_in_bank:
+                self.mouse.move_to(item_in_bank.random_point(), mouseSpeed='fastest')
+                while not self.mouseover_text(contains=["Withdraw"], color=clr.OFF_WHITE) and not self.mouse.move_to(item_in_bank.random_point(), mouseSpeed='fastest'):
+                    time.sleep(0.2)
+                if item in ['Stamina_potion_bank']:
+                    keyboard.press('shift')
+                    self.mouse.click()
+                    keyboard.release('shift')
+                else:
+                    self.mouse.click()
+        if close:
+            keyboard.press_and_release('esc')
+            time.sleep(random.randint(751, 891) / 1000)
+        return True
+
+    def start_skilling(self, interface,timeout=10):
+        time.sleep(random.randint(780, 850) / 1000)
+        timer = 0
+        while not (start_skilling := search_img_in_rect(BOT_IMAGES.joinpath("skilling", f'{interface}.png'), self.win.chat, 0.9)):
+            time.sleep(1)
+            timer += 1
+            if timer == timeout:
+                return False
+        if start_skilling:
+            self.mouse.move_to(start_skilling.random_point(), mouseSpeed='fastest')
+            self.mouse.click()
+        return True
+
+    def finished_processing(self, item_name, tick: float):
+        api_m = MorgHTTPSocket()
+        timer = 0
+        while len(api_m.get_inv_item_indices(item_name)) != 0:
+            timer += 1
+            time.sleep(tick)
+            if timer == 27:
+                return False
+        if rd.random_chance(probability=0.05) and self.take_breaks:
+            self.take_break(max_seconds=10, fancy=True)
+        time.sleep(random.randint(251, 302) / 1000)
+        return True
+
+    def hop(self):
+        pyautogui.press('num9')
+
+    def select_item(self, text, location):
+        timer = 0
+        while not self.mouseover_text(contains=text, color=[clr.OFF_WHITE, clr.OFF_ORANGE]):
+            self.mouse.move_to(location.random_point(), mouseSpeed='fastest')
+            time.sleep(1)
+            timer += 1
+            if timer == 50:
+                return False
+        return True
+
+    def select_color(self, color, mouse_text, api_m, validate=True):
+        while not (object_found := self.get_nearest_tag(color)):
+            time.sleep(0.1)
+        if object_found:
+            while api_m.get_animation_id() not in [808, 813]:
+                continue
+            if validate == False:
+                self.mouse.move_to(object_found.random_point(), mouseSpeed='fastest')
+                if not self.mouse.click(check_red_click=True):
+                    return self.select_color(color, mouse_text, api_m,False)
+            while not self.mouseover_text(contains=mouse_text, color=[clr.OFF_WHITE, clr.OFF_CYAN]):
+                if object_found := self.get_nearest_tag(color):
+                    self.mouse.move_to(object_found.random_point(), mouseSpeed='fastest')
+                time.sleep(0.2)
+            if not self.mouse.click(check_red_click=True):
+                return self.select_color(color, mouse_text, api_m)
+            
+    def select_color2(self, color, mouse_text, api_m):
+        while not (object_found := self.get_nearest_tag(color)):
+            time.sleep(0.1)
+        if object_found:
+            while api_m.get_animation_id() != 808:
+                continue
+            self.mouse.move_to(object_found.random_point(), mouseSpeed='fastest')
+            time.sleep(0.8)
+            while not self.mouseover_text(contains=mouse_text, color=clr.OFF_WHITE):
+                if object_found := self.get_nearest_tag(color):
+                    self.mouse.move_to(object_found.random_point(), mouseSpeed='fast')
+                    time.sleep(0.8)
+            self.mouse.click()        
+
+    def withdraw_from_bank2(self, item_pic, single=False, close=True):
+        for item in item_pic:
+            timer = 0
+            while not (item_in_bank := search_img_in_rect(BOT_IMAGES.joinpath("bank", f'{item}.png'), self.win.game_view)):
+                timer += 1
+                time.sleep(1)
+                if timer == 50:
+                    return False
+            if item_in_bank:
+                self.mouse.move_to(item_in_bank.random_point(), mouseSpeed='fastest')
+                while not self.mouseover_text(contains=["Withdraw"], color=clr.OFF_WHITE) and not self.mouse.move_to(item_in_bank.random_point(), mouseSpeed='fastest'):
+                    time.sleep(0.2)
+                if single:
+                    keyboard.press('shift')
+                    self.mouse.click()
+                    keyboard.release('shift')
+                else:
+                    self.mouse.click()
+        if close:
+            keyboard.press_and_release('esc')
+            time.sleep(random.randint(751, 891) / 1000)
+        return True
+    
+    def open_bank(self):
+        timer = 0
+        while not self.mouseover_text(contains=['Bank', 'Use'], color=[clr.OFF_WHITE, clr.OFF_CYAN, clr.OFF_YELLOW]):
+            if bank_npc := self.get_all_tagged_in_rect(self.win.game_view,clr.CYAN):
+                self.mouse.move_to(bank_npc[0].random_point(), mouseSpeed='fastest')
+            time.sleep(0.2)
+            timer += 1
+            if timer == 50:
+                return None
+        self.mouse.click()
+        timer = 0
+        while not (deposit_all_btn := imsearch.search_img_in_rect(BOT_IMAGES.joinpath("bank", "bankall.png"), self.win.game_view)):
+            time.sleep(1)
+            timer += 1
+            if timer == 50:
+                return None
+        return deposit_all_btn
+    
+    def open_bank_orange(self):
+        timer = 0
+        if bank_npc := self.get_all_tagged_in_rect(self.win.game_view,clr.DARK_ORANGE2):
+            self.mouse.move_to(bank_npc[0].random_point(), mouseSpeed='fastest')
+        while not self.mouseover_text(contains=['Bank','Use'], color=[clr.OFF_WHITE, clr.OFF_CYAN, clr.OFF_YELLOW]):
+            if bank_npc := self.get_all_tagged_in_rect(self.win.game_view,clr.DARK_ORANGE2):
+                self.mouse.move_to(bank_npc[0].random_point(), mouseSpeed='fastest')
+            time.sleep(0.2)
+            timer += 1
+            if timer == 50:
+                return None
+        self.mouse.click()
+        timer = 0
+        while not (deposit_all_btn := imsearch.search_img_in_rect(BOT_IMAGES.joinpath("bank", "bankall.png"), self.win.game_view)):
+            time.sleep(1)
+            timer += 1
+            if timer == 50:
+                return None
+        return deposit_all_btn
+
+
+def is_valid_move(curr_x, curr_y, new_x, new_y):
+    return (abs(curr_x - new_x) == 1 and abs(curr_y - new_y) == 0) or (abs(curr_x - new_x) == 0 and abs(curr_y - new_y) == 1)
+
+
+def generate_path(matrix, visited, x, y, target_len):
+    if len(visited) == target_len:
+        return visited
+
+    moves = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+    random.shuffle(moves)
+
+    for dx, dy in moves:
+        new_x, new_y = x + dx, y + dy
+        if 0 <= new_x < len(matrix) and 0 <= new_y < len(matrix[0]) and is_valid_move(x, y, new_x, new_y) and matrix[new_x][new_y] not in visited:
+
+            visited.append(matrix[new_x][new_y])
+            result = generate_path(matrix, visited, new_x, new_y, target_len)
+            if result:
+                return result
+            visited.pop()
+    return None
+
+
+def generate_matrix_path():
+    matrix = [[i + j * 4 for i in range(4)] for j in range(7)]
+    start_candidates = [2, 4] * 3 + [random.choice([2, 4])]
+
+    for start in start_candidates:
+        path = generate_path(matrix, [start], start // 4, start % 4, 28)
+        if path:
+            return path
+    return None
