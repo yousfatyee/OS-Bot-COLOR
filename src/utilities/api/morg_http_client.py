@@ -21,12 +21,13 @@ class SocketError(Exception):
 
 class MorgHTTPSocket:
     def __init__(self):
-        self.base_endpoint = "http://localhost:8080/"
+        self.base_endpoint = "http://localhost:8081/"
 
         self.inv_endpoint = "inv"
         self.stats_endpoint = "stats"
         self.equip_endpoint = "equip"
         self.events_endpoint = "events"
+        self.wintertd_endpoint= "wintertodt"
 
         self.timeout = 1
 
@@ -295,7 +296,19 @@ class MorgHTTPSocket:
         """
         data = self.__do_get(endpoint=self.events_endpoint)
         return int(data["npc health "])
+    
+    def get_winterdt_health(self):
+        data = self.__do_get(endpoint=self.wintertd_endpoint)
+        return int(data["hp"])
 
+    def get_winterdt_active(self):
+        data = self.__do_get(endpoint=self.wintertd_endpoint)
+        return data["active"]
+    
+    def get_winterdt_warmth(self):
+        data = self.__do_get(endpoint=self.wintertd_endpoint)
+        return int(data["warmth"])
+    
     def get_inv(self):
         """
         Gets a list of dicts representing the player inventory.

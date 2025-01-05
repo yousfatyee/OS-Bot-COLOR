@@ -117,14 +117,14 @@ class OSRSMakepot(OSRSBot):
                     time.sleep(0.2)    
                 else:
                     if  api_m.get_if_item_in_inv(ids.RANARR_POTION_UNF) and api_m.get_if_item_in_inv(ids.SNAPE_GRASS):
-                        randomSlot = random.randint(12,13)
-                        self.mouse.move_to(self.win.inventory_slots[13].random_point(),mouseSpeed='fast')
-                        self.mouse.click()
-                        randomSlot = random.randint(14,18)
-                        self.mouse.move_to(self.win.inventory_slots[randomSlot].random_point(),mouseSpeed='fast')
-                        self.mouse.click()
-                        time.sleep(0.9)
-                        keyboard.press_and_release("space")
+                        randomSlot = random.randint(12,13) 
+                        self.mouse.move_to(self.win.inventory_slots[13].random_point(),mouseSpeed='fast') 
+                        self.mouse.click()   
+                        randomSlot = random.randint(14,18)         
+                        self.mouse.move_to(self.win.inventory_slots[randomSlot].random_point(),mouseSpeed='fast')   
+                        self.mouse.click()      
+                        time.sleep(0.9) 
+                        keyboard.press_and_release("space") 
                         time.sleep(0.9)
                     else:                
                         if not (deposit := self.open_bank_orange()):

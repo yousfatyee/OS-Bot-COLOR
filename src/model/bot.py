@@ -748,8 +748,9 @@ class Bot(ABC):
         while not (object_found := self.get_nearest_tag(color)):
             time.sleep(0.1)
         if object_found:
-            while api_m.get_animation_id() not in [808, 813]:
+            while api_m.get_animation_id() not in [808]:
                 continue
+            self.mouse.move_to(object_found.random_point(), mouseSpeed='fastest')
             if validate == False:
                 self.mouse.move_to(object_found.random_point(), mouseSpeed='fastest')
                 if not self.mouse.click(check_red_click=True):
@@ -761,13 +762,13 @@ class Bot(ABC):
             if not self.mouse.click(check_red_click=True):
                 return self.select_color(color, mouse_text, api_m)
             
-    def select_color2(self, color, mouse_text, api_m):
+    def select_color2(self, color, mouse_text, api_m,speed='fastest'):
         while not (object_found := self.get_nearest_tag(color)):
             time.sleep(0.1)
         if object_found:
             while api_m.get_animation_id() != 808:
                 continue
-            self.mouse.move_to(object_found.random_point(), mouseSpeed='fastest')
+            self.mouse.move_to(object_found.random_point(), mouseSpeed=speed)
             time.sleep(0.8)
             while not self.mouseover_text(contains=mouse_text, color=clr.OFF_WHITE):
                 if object_found := self.get_nearest_tag(color):

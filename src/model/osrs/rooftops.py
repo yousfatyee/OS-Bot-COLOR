@@ -267,7 +267,7 @@ class OSRSAgility(OSRSBot):
 
     def highAlch(self,api_m: MorgHTTPSocket):
         #alch_pic = BOT_IMAGES.joinpath("spellbooks").joinpath("normal","high_alch1.png")
-        keyboard.press_and_release("F6")
+        keyboard.press_and_release("F4")
         self.mouse.move_to(self.win.spellbook_normal[34].random_point())
         self.mouse.click()
         time.sleep(0.6)

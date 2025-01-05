@@ -121,7 +121,7 @@ class OSRSBlast(OSRSBot):
 
     def refresh_energy(self, api_m):
         if api_m.get_run_energy() < 5000:
-            self.withdraw_from_bank( [f'Stamina_potion_bank'], False)
+            self.withdraw_from_bank2( [f'Stamina_potion_bank'],True, False)
             while not (stamina := search_img_in_rect(BOT_IMAGES.joinpath("items", 'Stamina_potion.png'), self.win.control_panel)):
                 time.sleep(0.1)
             self.mouse.move_to(stamina.random_point(), mouseSpeed='fastest')

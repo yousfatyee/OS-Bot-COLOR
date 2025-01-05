@@ -74,6 +74,7 @@ class OSRSBuyIronOre(OSRSBot):
                 if not api_m.get_is_inv_full():
                     keyboard.press_and_release("0")
                     time.sleep(9)
+                    keyboard.press_and_release("space")
                     continue    
             if api_m.get_is_inv_full():
                 keyboard.press_and_release("Escape")
@@ -111,6 +112,7 @@ class OSRSBuyIronOre(OSRSBot):
         timer = 0
         while 'The coal bag is now empty' not in api_m.get_latest_chat_message():
             time.sleep(0.6)
+            self.log_msg("reading messages!")
             timer += 1
             if timer > 8:
                 self.use_coal_bag(api_m, bank_open)

@@ -345,7 +345,9 @@ if __name__ == "__main__":
     app = App()  # Add the "test=True" argument to the App constructor call.
     app.start()  # Comment out this line.
     # app.test(Bot())  # Uncomment this line and replace argument with your bot's instance.
-
+    # from model.osrs.wintertoad import OSRSwintertoad
+    # app = App(test=True)
+    # app.test(OSRSwintertoad())
     # IMPORTANT
     # - Make sure your bot's options are pre-defined in its __init__ method.
     # - You can stop the bot by pressing `Left Ctrl`
