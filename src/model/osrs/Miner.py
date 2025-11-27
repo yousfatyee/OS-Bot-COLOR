@@ -83,7 +83,8 @@ class OSRSMiner(OSRSBot):
             #    self.drop(slots)
             #    time.sleep(1)
                    
-                
+            while not api_m.get_is_player_idle():
+                time.sleep(0.6*random.randint(1,2))   
             # If inventory is full, drop logs
             if api_m.get_is_inv_full() :     
                 #if api_m.get_run_energy() > 30:
@@ -93,7 +94,7 @@ class OSRSMiner(OSRSBot):
                     if not self.mouseover_text(contains="Deposit", color=clr.OFF_WHITE):
                         continue
                     self.mouse.click()
-                    while api_m.get_is_player_idle():
+                    while not api_m.get_is_player_idle():
                         time.sleep(0.6*random.randint(1,2))
                     flag = True       
                 elif not self.__move_to_further_tile():

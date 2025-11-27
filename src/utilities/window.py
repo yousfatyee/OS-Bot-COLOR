@@ -77,26 +77,50 @@ class Window:
         self.padding_left = padding_left
 
     def _get_window(self):
-        self._client = pywinctl.getWindowsWithTitle(self.window_title)
-        if self._client:
-            return self._client[0]
-        else:
-            raise WindowInitializationError("No client window found.")
+        title_sub = self.window_title.lower()
+
+        # Get all windows with titles
+        all_windows = pywinctl.getAllWindows()
+        matches = [w for w in all_windows if title_sub in (w.title or "").lower()]
+
+        if not matches:
+            raise WindowInitializationError(f"No client window found containing '{self.window_title}'.")
+
+        # Prefer the biggest window (likely the game client)
+        client = max(matches, key=lambda w: w.width * w.height)
+
+        self._client = client
+        return client
+    
+
 
     window = property(
         fget=_get_window,
         doc="A Win32Window reference to the game client and its properties.",
     )
 
-    def focus(self) -> None:  # sourcery skip: raise-from-previous-error
+    def focus(self) -> None:
         """
         Focuses the client window.
         """
-        if client := self.window:
-            try:
-                client.activate()
-            except Exception:
-                raise WindowInitializationError("Failed to focus client window. Try bringing it to the foreground.")
+        client = self.window
+        if not client:
+            raise WindowInitializationError("Failed to find client window.")
+    
+        try:
+            # If minimized, restore first
+            if getattr(client, "isMinimized", False):
+                client.restore()
+    
+            # Try to activate / bring to front
+            client.activate()
+        except Exception as e:
+            # TEMP: print real error for debugging
+            print(f"[Window.focus] Failed to focus window '{client.title}': {e!r}")
+            raise WindowInitializationError(
+                "Failed to focus client window. Try bringing it to the foreground."
+            )
+
 
     def position(self) -> Point:
         """

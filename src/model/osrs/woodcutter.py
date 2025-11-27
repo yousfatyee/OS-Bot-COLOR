@@ -74,7 +74,7 @@ class OSRSWoodcutter(OSRSBot):
 
             # If inventory is full, drop logs
             if api_m.get_is_inv_full():
-                self.__burn_logs(api_m)
+                self.__bank_log(api_m)
 
             # If our mouse isn't hovering over a tree, and we can't find another tree...
             if not self.__move_mouse_to_nearest_tree():

@@ -89,7 +89,7 @@ class RuneLiteWindow(Window):
 class RuneLiteBot(Bot, metaclass=ABCMeta):
     win: RuneLiteWindow = None
 
-    def __init__(self, game_title, bot_title, description, window: Window = RuneLiteWindow("RuneLite")) -> None:
+    def __init__(self, game_title, bot_title, description, window: Window = RuneLiteWindow("RuneLite -")) -> None:
         super().__init__(game_title, bot_title, description, window)
 
     # --- OCR Functions ---

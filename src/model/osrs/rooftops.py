@@ -32,7 +32,7 @@ class OSRSAgility(OSRSBot):
         )
         super().__init__(bot_title=bot_title, description=description)
         self.laps_run = 240
-        self.total_laps = 0
+        self.total_laps = -1
         self.total_marks = 0
         self.fails = 0
         self.take_breaks = True
@@ -126,28 +126,68 @@ class OSRSAgility(OSRSBot):
                 'color': clr.DARK_GREEN
             },
         }
+        savannaObstacles = {
+            (1645,2933,0): {
+                'text': ["Climb", "Ladder"],
+                'yellow_step': False,
+                'mark': True,
+                'color': clr.YELLOW
+            },
+            (1653, 2931, 1): {
+                'text': ["Cross", "Tightrope"],
+                'yellow_step': False,
+                'mark': True,
+                'color': clr.ORANGE
+            },
+            (1649, 2910, 1): {
+                'text': ["Climb", "Ladder"],
+                'yellow_step': True,
+                'mark': True,
+                'color': clr.DARK_BLUE
+            },
+            (1648, 2908, 2): {
+                'text': ["Jump", "Edge"],
+                'yellow_step': False,
+                'mark': True,
+                'color': clr.LIGHT_RED
+            },
+            (1635, 2907, 2): {
+                'text': ["Cross", "Tightrope"],
+                'yellow_step': False,
+                'mark': True,
+                'color': clr.DARK_ORANGE
+            },
+            (1624, 2931, 2): {
+                'text': ["Slide", "Zipline"],
+                'yellow_step': False,
+                'mark': True,
+                'color': clr.DARK_GREEN
+            },
+        }
         # Main loop
         #keyboard.press_and_release("F6") #open magic book
         last_message = api_m.get_latest_chat_message()
-        keyboard.press_and_release("f6")
+        # keyboard.press_and_release("f6")
         while self.total_laps < self.laps_run:
             if rd.random_chance(probability=0.02) and self.take_breaks:
                 self.take_break(max_seconds=10, fancy=True)
 
             new_message = api_m.get_latest_chat_message()
-            if 'Your Seers' in new_message and new_message != last_message:
+            # if 'Your Seers' in new_message and new_message != last_message:
+            if api_m.get_player_position()[2] == 0:
                 last_message = new_message
                 self.total_laps += 1
                 self.log_msg(f"Laps: {self.total_laps}, Marks: {self.total_marks}, Fails: {self.fails}")
                 self.update_progress(self.total_laps/self.laps_run)
                 #self.__cast_tele()
             try:
-                self.obstacle(obstacles[api_m.get_player_position()], api_m)
-                #if not self.obstacle(obstacles[api_m.get_player_position()], api_m):
-                    #self.obstacle(obstacles[(3510, 3485, 0)], api_m)
+                self.obstacle(savannaObstacles[api_m.get_player_position()], api_m)
+                if not self.obstacle(savannaObstacles[api_m.get_player_position()], api_m):
+                    self.obstacle(savannaObstacles[(1645,2933,0)], api_m)
             except KeyError:
-                if not self.obstacle(obstacles[(2726,3485,0)], api_m):
-                    self.__cast_tele()
+                # if not self.obstacle(savannaObstacles[(2726,3485,0)], api_m):
+                #     self.__cast_tele()
+                    self.obstacle(savannaObstacles[(1645,2933,0)], api_m)
                     continue
 
         self.update_progress(1)
@@ -234,15 +274,15 @@ class OSRSAgility(OSRSBot):
                 if self.mouseover_text(contains=step['text'], color=[clr.OFF_WHITE, clr.OFF_CYAN]):
                     if not self.mouse.click(check_red_click=True):
                         continue
-                    #if rd.random_chance(probability=0.89):
-                        #moved = True
-                        #self.mouse.move_to(self.win.spellbook_normal[34].random_point(),mouseSpeed='medium')
-                        #if not self.mouseover_text(contains="Cast",color=clr.OFF_WHITE):
-                        #    keyboard.press_and_release("F6") 
-                        #    time.sleep(0.2)
-                        #self.mouse.click()  
-                        #yewlong = api_m.get_inv_item_indices(ids.YEW_LONGBOW_NOTED)
-                        #self.mouse.move_to(self.win.inventory_slots[yewlong[0]].random_point(), mouseSpeed='fast')
+                    # if rd.random_chance(probability=0.89) and api_m.get_if_item_in_inv(ids.RUNE_PLATEBODY_NOTED):
+                    #     moved = True
+                    #     self.mouse.move_to(self.win.spellbook_normal[34].random_point(),mouseSpeed='medium')
+                    #     if not self.mouseover_text(contains="Cast",color=clr.OFF_WHITE):
+                    #        keyboard.press_and_release("F6") 
+                    #        time.sleep(0.2)
+                    #     self.mouse.click()  
+                    #     yewlong = api_m.get_inv_item_indices(ids.RUNE_PLATEBODY_NOTED)
+                    #     self.mouse.move_to(self.win.inventory_slots[yewlong[0]].random_point(), mouseSpeed='fast')
                     break
             retries += 1
         
@@ -250,10 +290,12 @@ class OSRSAgility(OSRSBot):
         #self.log_msg(f'Clicking color {str(step["color"])}')
         if not api_m.wait_til_gained_xp('Agility', 10):
             self.obstacle(step, api_m)
-        if moved:
-            self.mouse.click()            
-        if api_m.get_player_position()[2] == 0 and api_m.get_player_position() != (3510, 3485, 0):
-            self.__cast_tele()
+        while not api_m.get_is_player_idle():
+            time.sleep(random.randint(850, 933) / 1000)
+        #if moved:
+        #    self.mouse.click()            
+        #if api_m.get_player_position()[2] == 0 and api_m.get_player_position() != (3510, 3485, 0):
+            #self.__cast_tele()
             #while not self.get_nearest_tag(clr.YELLOW):
             #    if enter_text := self.get_all_tagged_in_rect(self.win.game_view, clr.RED):
             #        self.fails += 1
@@ -267,11 +309,13 @@ class OSRSAgility(OSRSBot):
 
     def highAlch(self,api_m: MorgHTTPSocket):
         #alch_pic = BOT_IMAGES.joinpath("spellbooks").joinpath("normal","high_alch1.png")
+        if not api_m.get_if_item_in_inv(ids.RUNE_PLATEBODY_NOTED):
+            return True
         keyboard.press_and_release("F4")
         self.mouse.move_to(self.win.spellbook_normal[34].random_point())
         self.mouse.click()
         time.sleep(0.6)
-        yewlong = api_m.get_inv_item_indices(ids.YEW_LONGBOW_NOTED)
+        yewlong = api_m.get_inv_item_indices(ids.RUNE_PLATEBODY_NOTED)
         self.mouse.move_to(self.win.inventory_slots[yewlong[0]].random_point(), mouseSpeed='fastest')
         self.mouse.click()
         time.sleep(0.3)

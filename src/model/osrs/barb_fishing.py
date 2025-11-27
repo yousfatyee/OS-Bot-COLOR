@@ -41,7 +41,7 @@ class OSRSBarbFisher(OSRSBot):
         self.log_msg(f"Bot will{' ' if self.take_breaks else ' not '}take breaks.")
         self.log_msg("Options set successfully.")
         self.options_set = True
-
+        
     def main_loop(self):
         # Setup API
         api_m = MorgHTTPSocket()
@@ -64,23 +64,24 @@ class OSRSBarbFisher(OSRSBot):
                 self.__drop_fish(api_m)
 
             # If inventory is full, drop logs
-            #if api_m.get_is_inv_full():
-            #    self.__drop_fish(api_m)
+            if api_m.get_is_inv_full():
+                self.__drop_fish(api_m)
 
             # If our mouse isn't hovering over a tree, and we can't find another tree...
-            if not self.mouseover_text(contains="Net", color=clr.OFF_WHITE) and not self.__move_mouse_to_nearest_spot():
+            if not self.mouseover_text(contains=["Use-rod","Net","Lure","Mine"], color=clr.OFF_WHITE) and not self.__move_mouse_to_nearest_spot():
                 failed_searches += 1
                 if failed_searches % 10 == 0:
                     self.log_msg("Searching for fishing spots...")
                 if failed_searches > 60:
                     # If we've been searching for a whole minute...
-                    self.__logout("No tagged fishing spots found. Logging out.")
+                    # self.__logout("No tagged fishing spots found. Logging out.")
+                    time.sleep(1)
                 time.sleep(1)
                 continue
             failed_searches = 0  # If code got here, a tree was found
 
             # Click if the mouseover text assures us we're clicking a tree
-            if not self.mouseover_text(contains="Net", color=clr.OFF_WHITE):
+            if not self.mouseover_text(contains=["Use-rod","Net","Lure","Mine"], color=clr.OFF_WHITE):
                 continue
             self.mouse.click()
             time.sleep(5)
@@ -139,10 +140,16 @@ class OSRSBarbFisher(OSRSBot):
         Private function for dropping logs. This code is used in multiple places, so it's been abstracted.
         Since we made the `api` and `logs` variables assigned to `self`, we can access them from this function.
         """
-        slots_trout = api_m.get_inv_item_indices(ids.LEAPING_TROUT)
+        slots_leap_trout = api_m.get_inv_item_indices(ids.LEAPING_TROUT)
         slots_salmon = api_m.get_inv_item_indices(ids.LEAPING_SALMON)
         slots_sturgeon = api_m.get_inv_item_indices(ids.LEAPING_STURGEON)
-        slots = slots_trout + slots_salmon + slots_sturgeon
+        slots_trout = api_m.get_inv_item_indices(ids.RAW_TROUT)
+        slots_salmon_reg = api_m.get_inv_item_indices(ids.RAW_SALMON)
+        slots_shrimps = api_m.get_inv_item_indices(ids.RAW_SHRIMPS) 
+        slots_anshovies = api_m.get_inv_item_indices(ids.RAW_ANCHOVIES)
+        
+        slots = slots_leap_trout + slots_salmon + slots_sturgeon + slots_salmon_reg + slots_trout + slots_shrimps + slots_anshovies + api_m.get_inv_item_indices(ids.IRON_ORE)
+        
         time.sleep(random.randint(4, 9))
         if rd.random_chance(probability=0.75) and self.take_breaks:
             self.take_break(max_seconds=30, fancy=True)

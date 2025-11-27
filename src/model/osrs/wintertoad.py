@@ -150,7 +150,7 @@ class OSRSwintertoad(OSRSBot):
                 #if api_m.get_animation_id() != 2846:
                 if not api_m.get_is_player_idle(0.1):
                     continue
-                self.__activate_spec()
+                #self.__activate_spec()
                 self.select_color(clr.YELLOW,['Chop','Bruma','roots'],api_m)
                 time.sleep(0.2)
 

@@ -57,7 +57,7 @@ class OSRScraftmolten(OSRSBot):
         yewlogs = 'Yew_logs'
         while time.time() - start_time < end_time:
             if api_m.get_is_player_idle(2):
-                if api_m.get_if_item_in_inv(ids.YEW_LOGS):
+                if api_m.get_if_item_in_inv(ids.MOLTEN_GLASS):
                     self.__craft_glass(api_m)
                     continue
                 
@@ -71,7 +71,7 @@ class OSRScraftmolten(OSRSBot):
                         continue
                     time.sleep(0.6)
                     self.deposit_glass()
-                    self.withdraw_from_bank([f'{yewlogs}_bank'])
+                    self.withdraw_from_bank([f'{moltenglass}_bank'])
             self.update_progress((time.time() - start_time) / end_time)
 
         self.update_progress(1)
@@ -82,17 +82,17 @@ class OSRScraftmolten(OSRSBot):
         self.logout()
         self.stop()
     def __craft_glass(self,api_m:MorgHTTPSocket):
-        pipe = api_m.get_inv_item_indices(ids.KNIFE)
+        pipe = api_m.get_inv_item_indices(ids.GLASSBLOWING_PIPE)
         if not pipe:
             self.__logout("no knife located")
         self.mouse.move_to(self.win.inventory_slots[pipe[0]].random_point(),mouseSpeed='fast')
         self.mouse.click()
-        glass = api_m.get_inv_item_indices(ids.YEW_LOGS)
+        glass = api_m.get_inv_item_indices(ids.MOLTEN_GLASS)
         if  glass: 
             self.mouse.move_to(self.win.inventory_slots[glass[0]].random_point(),mouseSpeed='fast')
         self.mouse.click()
         time.sleep(1.2)
-        keyboard.press_and_release("3")
+        keyboard.press_and_release("7")
         
         
     

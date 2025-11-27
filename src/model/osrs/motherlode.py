@@ -59,6 +59,7 @@ class OSRSMotherLode(OSRSBot):
         failed_searches = 0
         mined = 0
         banked = 0
+        number_of_deposit = 3
         flag = True
         # Main loop
         start_time = time.time()
@@ -71,8 +72,10 @@ class OSRSMotherLode(OSRSBot):
             
             loc = api_m.get_player_position()
             if api_m.get_is_inv_full()  and loc[1] >= 5675:# still in mining area
+                self.log_msg("Inventory is full")
                 #if  5671 <= loc[1] and loc[1] >=5673: # might be blocked 
                 if loc[1] > 5676:
+                    self.log_msg("Inventory is full going down")
                     if self.__get_nearest_between_two_colors(clr.CYAN,clr.RED): 
                         if self.mouseover_text(contains=["Mine","Climb"],color=clr.OFF_WHITE):
                             self.mouse.click()
@@ -81,10 +84,15 @@ class OSRSMotherLode(OSRSBot):
                         if self.mouseover_text(contains="Climb",color=clr.OFF_WHITE):
                             self.mouse.click()
                 #time.sleep(.6*random.randint(4,5))
-            elif (api_m.get_is_inv_full() or (banked > 0 and not api_m.get_is_inv_empty())) and  loc[1] < 5675: # main area
+            elif (api_m.get_is_inv_full() or (banked > 0 and  len(api_m.get_inv()) > 1 )) and  loc[1] < 5675: # main area
+                self.log_msg(f"Inventory is full in main area! banked = {banked}")
                 if api_m.get_if_item_in_inv(ids.PAYDIRT):
+                    self.log_msg("depositing in hopper!")
                     self.__move_to_color(clr.GREEN)
-                    mined += 1
+                    if self.mouseover_text(contains="Deposit",color=clr.OFF_WHITE):
+                        self.mouse.click()
+                        mined += 1
+                    self.log_msg(f"total mined inventories = {mined}")   
                 else:
                     self.__move_to_color(clr.DARK_ORANGE)
                 if self.mouseover_text(contains="Deposit",color=clr.OFF_WHITE):
@@ -93,19 +101,33 @@ class OSRSMotherLode(OSRSBot):
                         #time.sleep(.6*random.randint(2,3))
                 if not api_m.get_if_item_in_inv(ids.PAYDIRT):
                     self.__bank_ores(api_m)
+                    self.log_msg("banked successfully!!")
                     banked += 1
+                    time.sleep(0.6)
+                    
+                    # if not (deposit := self.open_bank_orange()):
+                    #     continue
+                    # self.mouse.move_to(deposit.random_point(),mouseSpeed='fast')
+                    # self.mouse.click()
+                    # keyboard.press_and_release('esc')
+                    # banked += 1
+                    # self.log_msg(f"total banked inventories = {banked}") 
+                    
+                    
                         
              
             
                         
             if not api_m.get_is_inv_full():
-                if (sack := self.get_all_tagged_in_rect(self.win.game_view,clr.WHITE)) and mined == 4 and banked != mined: # need to bank ores
+                if (sack := self.get_all_tagged_in_rect(self.win.game_view,clr.WHITE)) and mined == number_of_deposit and banked != mined: # need to bank ores
+                    self.log_msg("looting the sack")
                     self.mouse.move_to(sack[0].random_point(),mouseSpeed="fast")
                     if self.mouseover_text(contains="Search",color=clr.OFF_WHITE):
                         self.mouse.click()
                         #if api_m.wait_til_gained_xp('Mining',10) > 0:
                                
-                elif mined < 4 :
+                elif mined < number_of_deposit :
+                    self.log_msg(f"mining still... {mined}")
                     loc = api_m.get_player_position()
                     if loc[1] < 5675: # main area
                         if self.__move_to_closest_color(clr.CYAN):
@@ -189,12 +211,12 @@ class OSRSMotherLode(OSRSBot):
     def __bank_ores(self,api_m: MorgHTTPSocket):
         retry = random.randint(0,5)
         done = False
-        while(not api_m.get_is_inv_empty()):
+        while( len(api_m.get_inv()) > 1):
             keyboard.press_and_release("escape")
             time.sleep(random.randint(600,940)/1000)
             while not (val := search_img_in_rect(BOT_IMAGES.joinpath("bank","bankdeposit.png"),self.win.game_view)):
                 time.sleep(0.1)
-                if api_m.get_is_inv_empty() :
+                if len(api_m.get_inv()) <= 1 :
                     break
             if not val:
                 continue

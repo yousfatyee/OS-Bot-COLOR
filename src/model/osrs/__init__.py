@@ -1,5 +1,6 @@
 from .combat.combat import OSRSCombat
 from .woodcutter import OSRSWoodcutter
+from .brimHavenSpammer import OSRSRandomYellowClicker
 from .fletching import OSRSBankFletcher
 from .wintertoad import OSRSwintertoad
 from .Miner import OSRSMiner

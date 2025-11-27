@@ -72,7 +72,7 @@ class OSRSBlast(OSRSBot):
     def cycle(self, api_m, ore):
         self.open_bank()
         self.deposit_bar('Steel_bar')
-        self.refresh_energy(api_m)
+        #self.refresh_energy(api_m)
         self.use_coal_bag(api_m, True)
         self.withdraw_from_bank( [f'{ore}_bank'])
         self.select_color2( clr.PINK, ['Put', 'ore', 'on'],api_m)
