@@ -10,18 +10,17 @@ from utilities.api.morg_http_client import MorgHTTPSocket
 from utilities.api.status_socket import StatusSocket
 from utilities.geometry import RuneLiteObject
 import pyautogui as pag
-import random
 
 from utilities.imagesearch import search_img_in_rect, BOT_IMAGES
 
-
-class OSRScraftmolten(OSRSBot):
+3
+class OSRSSmither(OSRSBot):
     def __init__(self):
         self.clay = None
         self.options_set = True
-        bot_title = "feltch yew longs"
+        bot_title = "cannon balls"
         description = (
-            "NA"
+            "edgevile cannon balls"
         )
         super().__init__(bot_title=bot_title, description=description)
         self.running_time = 240
@@ -53,26 +52,18 @@ class OSRScraftmolten(OSRSBot):
         # Main loop
         start_time = time.time()
         end_time = self.running_time * 60
-        moltenglass = 'Molten_glass'
-        yewlogs = 'Yew_logs'
-        maplelogs = 'Maple_logs'
         while time.time() - start_time < end_time:
-            if api_m.get_is_player_idle(2):
-                if api_m.get_if_item_in_inv(ids.MAPLE_LOGS):
-                    self.__craft_glass(api_m)
-                    continue
-                
-                if api_m.get_is_inv_full:
-                    bankchest = self.get_all_tagged_in_rect(self.win.game_view,clr.DARK_ORANGE2)
-                    if not bankchest:
-                        continue
-                    self.mouse.move_to(bankchest[0].random_point(),mouseSpeed='medium')
-                    bank = self.open_bank_orange()
-                    if not bank:
-                        continue
-                    time.sleep(0.6)
-                    #self.deposit_glass()
-                    self.withdraw_from_bank([f'{maplelogs}_bank'])
+            if not api_m.get_if_item_in_inv(ids.STEEL_BAR):
+                self.refresh_energy(api_m)
+                self.open_bank()
+                self.withdraw_from_bank( ['Steel_bar_bank'])
+            if api_m.get_is_player_idle(2) and api_m.get_if_item_in_inv(ids.STEEL_BAR):   
+                self.select_color(clr.RED,['Smelt'],api_m)
+                time.sleep(random.randint(11,14)/2)
+                keyboard.press_and_release("Space")
+            
+            #while api_m.get_if_item_in_inv(ids.STEEL_BAR):
+            #    time.sleep(0.6)
             self.update_progress((time.time() - start_time) / end_time)
 
         self.update_progress(1)
@@ -82,26 +73,18 @@ class OSRScraftmolten(OSRSBot):
         self.log_msg(msg)
         self.logout()
         self.stop()
-    def __craft_glass(self,api_m:MorgHTTPSocket):
-        pipe = api_m.get_inv_item_indices(ids.KNIFE)
-        if not pipe:
-            self.__logout("no knife located")
-        self.mouse.move_to(self.win.inventory_slots[pipe[0]].random_point(),mouseSpeed='fast')
-        self.mouse.click()
-        glass = api_m.get_inv_item_indices(ids.MAPLE_LOGS)
-        if  glass: 
-            self.mouse.move_to(self.win.inventory_slots[glass[0]].random_point(),mouseSpeed='fast')
-        self.mouse.click()
-        time.sleep(1.2)
-        keyboard.press_and_release("1")
-        
-        
+
     
 
-    def deposit_glass(self):
-        self.mouse.move_to(self.win.inventory_slots[random.randint(1,7)].random_point(),mouseSpeed='fast')
-        self.mouse.click()        
-     
-        
-        
+    def refresh_energy(self, api_m):
+        if api_m.get_run_energy() > 5000:
+            self.toggle_run(True)
+            #self.withdraw_from_bank(self, [f'Stamina_potion_bank'], False)
+            #while not (stamina := search_img_in_rect(BOT_IMAGES.joinpath("items", 'Stamina_potion.png'), self.win.control_panel)):
+            #    time.sleep(0.1)
+            #self.mouse.move_to(stamina.random_point(), mouseSpeed='fastest')
+            #keyboard.press('shift')
+            #self.mouse.click()
+            #keyboard.release('shift')
+
     

@@ -23,3 +23,5 @@ from .plankMake import OSRSplankMake
 from .fire_making import OSRSfireMake
 from .slayer import OSRSSlayer
 from .NMZ import OSRSNMZ
+from .glass_smithing import OSRSGlassSmither
+from .giant_seaweed_cooker import OSRSGiantSeaweedCooker

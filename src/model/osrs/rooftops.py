@@ -292,18 +292,18 @@ class OSRSAgility(OSRSBot):
             self.obstacle(step, api_m)
         while not api_m.get_is_player_idle():
             time.sleep(random.randint(850, 933) / 1000)
-        #if moved:
-        #    self.mouse.click()            
-        #if api_m.get_player_position()[2] == 0 and api_m.get_player_position() != (3510, 3485, 0):
-            #self.__cast_tele()
-            #while not self.get_nearest_tag(clr.YELLOW):
-            #    if enter_text := self.get_all_tagged_in_rect(self.win.game_view, clr.RED):
-            #        self.fails += 1
-            #        self.mouse.move_to(enter_text[0].random_point(), mouseSpeed='fastest')
-            #        time.sleep(0.2)
-            #        self.mouse.click()
-            #        time.sleep(random.randint(3500, 4500) / 1000)
-            #return False        
+        if moved:
+           self.mouse.click()            
+        if api_m.get_player_position()[2] == 0 and api_m.get_player_position() != (3510, 3485, 0):
+            self.__cast_tele()
+            while not self.get_nearest_tag(clr.YELLOW):
+               if enter_text := self.get_all_tagged_in_rect(self.win.game_view, clr.RED):
+                   self.fails += 1
+                   self.mouse.move_to(enter_text[0].random_point(), mouseSpeed='fastest')
+                   time.sleep(0.2)
+                   self.mouse.click()
+                   time.sleep(random.randint(3500, 4500) / 1000)
+            return False        
         time.sleep(random.randint(850, 933) / 1000)
         return True
 

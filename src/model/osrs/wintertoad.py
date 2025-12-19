@@ -229,62 +229,6 @@ class OSRSwintertoad(OSRSBot):
         self.logout()
         self.stop()
         
-    def __move_to_further_tile(self):
-        tiles = self.get_all_tagged_in_rect(self.win.game_view, clr.GREEN)
-        tile = None
-        if not tiles:
-            return False
-        tiles = sorted(tiles, key=RuneLiteObject.distance_from_rect_center)
-        tile = tiles[len(tiles)-1] 
-        self.mouse.move_to(tile.random_point())
-        return True
-    
-    def __move_to_grinder(self):
-        grinder = self.get_all_tagged_in_rect(self.win.game_view, clr.RED)
-        if not grinder:
-            return False
-        self.mouse.move_to(grinder[0].random_point(), mouseSpeed="slow", knotsCount=2)
-        return True
-            
-    def __move_mouse_to_nearest_rock(self, next_nearest=False, dontMove=False):
-        """
-        Locates the nearest rock and moves the mouse to it. This code is used multiple times in this script,
-        so it's been abstracted into a function.
-        Args:
-            next_nearest: If True, will move the mouse to the second nearest rock. If False, will move the mouse to the
-                          nearest rock.
-            mouseSpeed: The speed at which the mouse will move to the rock. See mouse.py for options.
-        Returns:
-            True if success, False otherwise.
-        """
-        rocks1 = self.get_all_tagged_in_rect(self.win.game_view, clr.PINK)
-        rocks2 = self.get_all_tagged_in_rect(self.win.game_view, clr.CYAN)
-        rocks = rocks1 + rocks2
-        rock = None
-        if not rocks:
-            rocks = self.get_all_tagged_in_rect(self.win.game_view, clr.WHITE)
-            if not rocks:
-                return False
-        # If we are looking for the next nearest rock, we need to make sure rocks has at least 2 elements
-        if next_nearest and len(rocks) < 2:
-            return False
-        rocks = sorted(rocks, key=RuneLiteObject.distance_from_rect_center)
-        rock = rocks[1] if next_nearest else rocks[0]
-        if not dontMove:
-            if next_nearest:
-                self.mouse.move_to(rock.random_point(), mouseSpeed="slow", knotsCount=2)
-            else:
-                self.mouse.move_to(rock.random_point())
-        return True            
-        
-    def __drop_water_skins(self, api_m: StatusSocket):
-        """
-        Private function for dropping logs. This code is used in multiple places, so it's been abstracted.
-        Since we made the `api` and `logs` variables assigned to `self`, we can access them from this function.
-        """
-        slots = api_m.get_inv_item_indices(ids.WATERSKIN0)
-        self.drop(slots)
-        time.sleep(1)
-   
+
         
         
